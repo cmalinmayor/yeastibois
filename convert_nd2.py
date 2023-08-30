@@ -62,4 +62,11 @@ plt.show()
 # %%
 arr.to_zarr('../data/4dmz_2min_40x_01007.zarr')
 
-# %%
+# %% This is how I get the percentiles
+np.percentile(arr, [5, 95])
+# %% This is how I plot using the percentiles
+fig, ax = plt.subplots(10, 2, figsize=(10, 50))
+for i in range(10):
+    ax[i,0].imshow(arr[0,i,0], vmin=50, vmax=350)
+    ax[i,1].imshow(arr[0,i,1], vmin=50, vmax=350)
+plt.show()
