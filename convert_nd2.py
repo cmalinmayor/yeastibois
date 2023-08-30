@@ -14,18 +14,18 @@
 
 # %%
 import os
-import matplotlib.pyplot as plt
 from glob import glob
+
+import matplotlib.pyplot as plt
+# %%
+import nd2
 import numpy as np
 import zarr
-import nd2
+
 #import tifffile as tiff
 #from pims import ND2_Reader
 
 
-# %%
-import nd2
-import numpy as np
 input_nd2_path = '../data/4dmz_2min_40x_01007.nd2'
 #my_array = nd2.imread(input_nd2_path)                          # read to numpy array
 #my_array = nd2.imread('some_file.nd2', dask=True)               # read to dask array
@@ -51,10 +51,15 @@ print(f.is_rgb )       # False (whether the file is rgb)
                 # if the file is RGB, `f.sizes` will have
                 # an additional {'S': 3} component
 
-arr = f.asarray()
+arr = f.to_dask()
 print(arr.shape)
-fig, ax = plt.subplots(10, 2, figsize=(10, 50))
-for i in range(10):
-    ax[i,0].imshow(arr[0,i,0])
-    ax[i,1].imshow(arr[0,i,1])
+fig, ax = plt.subplots(25, 2, figsize=(10, 100))
+for i in range(25):
+    ax[i,0].imshow(arr[i,5,0])
+    ax[i,1].imshow(arr[i,5,1])
 plt.show()
+
+# %%
+arr.to_zarr('../data/4dmz_2min_40x_01007.zarr')
+
+# %%
