@@ -3,7 +3,7 @@ import time, os, sys
 from cellpose import models, utils, io
 
 
-def run_cellpose(image, gpu='False', channel=None, model='cyto', channel_axis=None):
+def run_cellpose(image, gpu='False', channel=None, model='cyto', channel_axis=None, diameter=None):
     '''
     ARGS:
         image: a 2d numpy array (w, h). It will contain a grey-scale image. 
@@ -18,6 +18,7 @@ def run_cellpose(image, gpu='False', channel=None, model='cyto', channel_axis=No
             Otherwise, can be a custom cellpose model trained with additional data.
         channel_axis: An optional parameter to specify which dimension in numpy array contains Channels. 
             Default None.
+        diameter: approximate cell diameter in pixels, if None, default value in model.eval() is 30
 
     RETURNS:
         mask: the function returns a mask containing instance segmentations of the image. It is a 2d array (w, h).
@@ -27,7 +28,7 @@ def run_cellpose(image, gpu='False', channel=None, model='cyto', channel_axis=No
     cellpose_model = models.Cellpose(gpu=gpu, model_type=model)
 
     # create masks from image
-    masks, flows, styles, diams = model.eval(image, diameter=None, channels=channel, channel_axis=channel_axis)
+    masks, flows, styles, diams = cellpose_model.eval(image, diameter=diameter, channels=channel, channel_axis=channel_axis)
 
     return masks
 
