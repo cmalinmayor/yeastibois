@@ -1,6 +1,9 @@
+from pathlib import Path
 import numpy as np
 import time, os, sys
 import matplotlib.pyplot as plt
+import os
+from imageio import imread
 
 
 ## function to create array from tiff
@@ -65,7 +68,10 @@ def load_data_yeast(directory):
 
     # Stack all Z-sections together to form an N_timepoint * image_width * image_height * N_zsections array
     bfimgs = np.stack(bfimgs, axis=-1)
+    bfimgs = np.transpose(bfimgs, (0, 3, 1, 2))
 
     print('Shape of "bfimgs":', bfimgs.shape)
 
     return bfimgs
+
+#load_data_yeast("/mnt/efs/shared_data/YeastiBois/baby_data/Fig1_brightfield_and_seg_outputs/")
