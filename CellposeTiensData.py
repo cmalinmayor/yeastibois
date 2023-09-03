@@ -64,43 +64,63 @@ import zarr
 # # %%
 
 
-#%% create raw and masks group
-zarr_file = "/mnt/efs/shared_data/YeastiBois/zarr_files/Tien/glass_60x_023_RawMasks.zarr"
+# #%% create raw and masks group
+# zarr_file = "/mnt/efs/shared_data/YeastiBois/zarr_files/Tien/glass_60x_023_RawMasks.zarr"
 
-# with zarr.open(zarr_file,'w') as zarrdir:
-#     zarrdir.create_dataset('raw',data=zfile['exp1'])
-#     print('copied raw, zarrfile shape = ',zarrdir['raw'].shape)
-#     zarrdir.create_dataset('masks',shape=datazarr['raw'][:,:,0,:,:].shape)
+# # with zarr.open(zarr_file,'w') as zarrdir:
+# #     zarrdir.create_dataset('raw',data=zfile['exp1'])
+# #     print('copied raw, zarrfile shape = ',zarrdir['raw'].shape)
+# #     zarrdir.create_dataset('masks',shape=datazarr['raw'][:,:,0,:,:].shape)
 
-datazarr = zarr.open(zarr_file,'r')
+# datazarr = zarr.open(zarr_file,'r')
 
-#making sure theres data in ['masks']
-fig,ax = plt.subplots(1,int(datazarr['masks'].shape[0]),figsize=(50, 10))
-for i in range(int(datazarr['masks'].shape[0])):
-    ax[i].imshow(datazarr['masks'][i,3])
-    ax[i].set_title(f'time {i}')
-    ax[i].set_axis_off()
-plt.show()
+# #making sure theres data in ['masks']
+# fig,ax = plt.subplots(1,int(datazarr['masks'].shape[0]),figsize=(50, 10))
+# for i in range(int(datazarr['masks'].shape[0])):
+#     ax[i].imshow(datazarr['masks'][i,3])
+#     ax[i].set_title(f'time {i}')
+#     ax[i].set_axis_off()
+# plt.show()
 
-#%% cellpose everything
 
-datazarr = zarr.open(zarr_file,'r+')
-model = models.Cellpose(model_type='cyto2', gpu=True)
-membrane_idx = 0
-nucleus_idx = 2
+#%% load and prepare zarrs for cellpose
+# zarr_file = "/mnt/efs/shared_data/YeastiBois/zarr_files/Tien/glass_60x_023_RawMasks.zarr"
 
-# for i in range(datazarr['raw'].shape[0]): #cellpose whole z-stack every timepoint and save to zarr['masks']
-#     img = datazarr['raw'][i]
+# # datazarr = zarr.open(zarr_file,'r+')
+# datazarr = zarr.open(zarr_file,'r')
+
+
+# #create new zarr for raw + masks + flow probabilities based on a RawMasks.zarr file
+RMP_zarr_path = '/mnt/efs/shared_data/YeastiBois/zarr_files/Tien/glass_60x_023_RawMasksProbs.zarr'
+# with zarr.open(RMP_zarr_path,'w') as RMP_zarr:
+#     RMP_zarr = zarr.open(RMP_zarr_path,'w')
+#     RMP_zarr.create_dataset('raw',data=datazarr['raw'])
+#     RMP_zarr.create_dataset('masks',shape=datazarr['raw'][:,:,0,:,:].shape)
+#     RMP_zarr.create_dataset('probs',shape=datazarr['raw'][:,:,0,:,:].shape)
+#     print('created RMP_zarr dataset')
+
+
+# #%% cellpose everything
+# model = models.Cellpose(model_type='cyto2', gpu=True)
+# membrane_idx = 0
+# nucleus_idx = 2
+
+# RMP_zarr = zarr.open(RMP_zarr_path,'r+')
+
+# for i in range(RMP_zarr['raw'].shape[0]): #cellpose whole z-stack every timepoint and save to zarr['masks']
+#     img = RMP_zarr['raw'][i]
     
-#     masks, *_ = model.eval(img, 
+#     masks, flows, styles, diams = model.eval(img, 
 #     anisotropy=10, 
 #     diameter=120, 
 #     channels=[membrane_idx + 1, nucleus_idx + 1], 
 #     channel_axis=1, 
 #     do_3D=True)
 
-#     datazarr['masks'][i] = masks
-#     print('finished masks')
+#     RMP_zarr['masks'][i] = masks
+#     RMP_zarr['probs'][i] = 1/(1+np.exp(-flows[2])) #apply sigmoid to probabilities
+
+# print('finished masks and probs')
 
 
 
@@ -111,3 +131,13 @@ nucleus_idx = 2
 # import napari
 # viewer = napari.Viewer()
 # viewer.add_image(zarrtest['raw'])
+
+# %% create foreground background
+
+
+# RMP_zarr = zarr.open(RMP_zarr_path,'r+')
+# datanp = RMP_zarr['masks'].astype(int)[:]
+# datanp[datanp != 0] = 1
+# RMP_zarr.create_dataset('fgbg', data = datanp)
+# print('completed')
+# print('shape fgbg folder',RMP_zarr['fgbg'].shape)
