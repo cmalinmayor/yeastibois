@@ -72,15 +72,15 @@ zarr_file = "/mnt/efs/shared_data/YeastiBois/zarr_files/Tien/glass_60x_023_RawMa
 #     print('copied raw, zarrfile shape = ',zarrdir['raw'].shape)
 #     zarrdir.create_dataset('masks',shape=datazarr['raw'][:,:,0,:,:].shape)
 
-# zarrtest = zarr.open(zarr_file,'r')
+datazarr = zarr.open(zarr_file,'r')
 
-# #making sure theres data in here
-# fig,ax = plt.subplots(1,int(zarrtest['raw'].shape[1]),figsize=(50, 10))
-# for i in range(int(zarrtest['raw'].shape[1])):
-#     ax[i].imshow(zarrtest['raw'][2,i,1])
-#     ax[i].set_title(f'time {i}')
-#     ax[i].set_axis_off()
-# plt.show()
+#making sure theres data in ['masks']
+fig,ax = plt.subplots(1,int(datazarr['masks'].shape[0]),figsize=(50, 10))
+for i in range(int(datazarr['masks'].shape[0])):
+    ax[i].imshow(datazarr['masks'][i,3])
+    ax[i].set_title(f'time {i}')
+    ax[i].set_axis_off()
+plt.show()
 
 #%% cellpose everything
 
@@ -89,19 +89,20 @@ model = models.Cellpose(model_type='cyto2', gpu=True)
 membrane_idx = 0
 nucleus_idx = 2
 
-for i in range(datazarr['raw'].shape[0]): #cellpose whole z-stack every timepoint and save to zarr['masks']
-    img = datazarr['raw'][i]
+# for i in range(datazarr['raw'].shape[0]): #cellpose whole z-stack every timepoint and save to zarr['masks']
+#     img = datazarr['raw'][i]
     
-    masks, *_ = model.eval(img, 
-    anisotropy=10, 
-    diameter=120, 
-    channels=[membrane_idx + 1, nucleus_idx + 1], 
-    channel_axis=1, 
-    do_3D=True)
+#     masks, *_ = model.eval(img, 
+#     anisotropy=10, 
+#     diameter=120, 
+#     channels=[membrane_idx + 1, nucleus_idx + 1], 
+#     channel_axis=1, 
+#     do_3D=True)
 
-    datazarr['masks'][i] = masks
-    print('finished masks')
-    plt.imshow(datazarr['masks'][i][3])
+#     datazarr['masks'][i] = masks
+#     print('finished masks')
+
+
 
 
 
