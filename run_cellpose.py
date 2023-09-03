@@ -3,6 +3,7 @@ import time
 import os
 import sys
 from cellpose import models, utils, io
+import matplotlib.pyplot as plt
 
 
 def run_cellpose(
@@ -16,6 +17,7 @@ def run_cellpose(
     anisotropy,
     cellprob_threshold=4,
 ):
+    
     """
     ARGS:
         image (np array):
@@ -46,6 +48,7 @@ def run_cellpose(
         mask: the function returns a mask containing instance segmentations of the image. It is a 2d array (w, h).
 
     """
+
     # create model
     cellpose_model = models.Cellpose(gpu=gpu, model_type=model)
 
@@ -63,15 +66,6 @@ def run_cellpose(
         min_size=128,
     )
     
-    import matplotlib.pyplot as plt
-
-    breakpoint()
-    
-
-    for i in range(4):
-        for j in range(3):
-            plt.imsave(f"out_{i}_{j}.png", flows[0][i][:, :, j])
-
     return masks
 
 
