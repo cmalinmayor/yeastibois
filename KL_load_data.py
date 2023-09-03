@@ -38,6 +38,12 @@ def load_zarr_data(directory, file, gpu="False"):
         "Completed creating new zarr file with datasets for raw and mask. Raw contains images. Mask dataset is empty."
     )
 
+# if __name__ == "__main__":
+# load_raw_masks(
+#     "/mnt/efs/shared_data/YeastiBois/baby_data/Fig1_brightfield_and_seg_outputs"
+# )
+
+
 
 def load_tiff_raw_masks(directory, file_type):
     """Summary: Load raw files and mask files from a folder, and return as numpy arrays.
@@ -74,7 +80,68 @@ def load_tiff_raw_masks(directory, file_type):
     return raws_np, masks_np
 
 
-# if __name__ == "__main__":
-# load_raw_masks(
-#     "/mnt/efs/shared_data/YeastiBois/baby_data/Fig1_brightfield_and_seg_outputs"
-# )
+
+## function to load tiffs (specific from baby data)
+def load_baby_yeast(directory):
+    """Load all of the images in the directory into a np array.
+    Args:
+        directory (str):
+            The folder containing the images.
+
+    Returns:
+        bfimgs (np.array of dim (t, w, h, z)):
+            All Z-sections together as a N_timepoint * image_width * image_height * N_zsections array
+    """
+
+    # Define top-level directory and names of Z section sub-directories
+    base_img_dir = Path(directory)
+    z_dir_names = [f"brightfield_z{i}" for i in range(1, 6)]
+
+    # Load images for each Z section in a loop
+    bfimgs = []
+    for z in z_dir_names:
+        # Get a list of all png files in the Z-section sub-directory
+        zfiles = filter(lambda x: x.suffix == ".png", (base_img_dir / z).iterdir())
+        # Sort by file name to guarantee ordering by time point
+        zfiles = sorted(zfiles, key=lambda x: x.stem)
+        # Load all files and stack them to form an N_timepoint * image_width * image_height array
+        bfimgs.append(np.stack([imread(f) for f in zfiles]))
+
+    # Stack all Z-sections together to form an N_timepoint * image_width * image_height * N_zsections array
+    bfimgs = np.stack(bfimgs, axis=-1)
+    bfimgs = np.transpose(bfimgs, (0, 3, 1, 2))
+
+    print('Shape of "bfimgs":', bfimgs.shape)
+
+    return bfimgs
+
+
+def load_tiff(file):
+    """ Summary: function to create array from tiff
+    ARGS:
+        file: a tiff file
+        directory: the path of the tiff file
+
+    RETURNS:
+        image: a numpy array
+
+    """
+    image = plt.imread(file)
+
+    return image
+
+
+
+def load_tiff_zstack(file):
+    '''
+    Args:
+        file: tiff file.
+    Returns: 
+        zstack_masks: a list of masks created from cellpose on an image. 
+    '''
+    zstack_masks = []
+    for i in file:
+        image = load_tiff(i)
+        mask = run_cellpose(image)
+        zstacks_masks.append(mask)
+    return zstack_masks
