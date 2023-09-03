@@ -1,45 +1,78 @@
 import numpy as np
-import time, os, sys
+import time
+import os
+import sys
 from cellpose import models, utils, io
 
 
-def run_cellpose(image, gpu='False', channel=None, model='cyto', channel_axis=None, diameter=None):
-    '''
+def run_cellpose(
+    image,
+    gpu,
+    channel,
+    model,
+    channel_axis,
+    diameter,
+    do_3D,
+    anisotropy,
+    cellprob_threshold=4,
+):
+    """
     ARGS:
-        image: a 2d numpy array (w, h). It will contain a grey-scale image. 
-        gpu: Whether or not to use GPU, will check if GPU available. 
-            Default is set to False.
-        channel: list of channels, either of length 2 or of length number of images by 2. 
-            First element of list is the channel to segment (0=grayscale, 1=red, 2=green, 3=blue). 
-            Second element of list is the optional nuclear channel (0=none, 1=red, 2=green, 3=blue). 
-        model: The model type that you want to run. Default model is cyto. 
-            Alternatives from cellpose: "cyto", "nuclei", "tissuenet", "cyto2", and more. 
-            See Cellpose documentation: https://cellpose.readthedocs.io/en/latest/models.html 
+        image (np array):
+            a 2d numpy array (w, h). It will contain a grey-scale image.
+        gpu (boolean):
+            Whether or not to use GPU, will check if GPU available.
+        channel (int):
+            list of channels, either of length 2 or of length number of images by 2.
+            First element of list is the channel to segment (0=grayscale, 1=red, 2=green, 3=blue).
+            Second element of list is the optional nuclear channel (0=none, 1=red, 2=green, 3=blue).
+        model (str):
+            The model type that you want to run.
+            Alternatives from cellpose: "cyto", "nuclei", "tissuenet", "cyto2", and more.
+            See Cellpose documentation: https://cellpose.readthedocs.io/en/latest/models.html
             Otherwise, can be a custom cellpose model trained with additional data.
-        channel_axis: An optional parameter to specify which dimension in numpy array contains Channels. 
-            Default None.
-        diameter: approximate cell diameter in pixels, if None, default value in model.eval() is 30
+        channel_axis (int):
+            An optional parameter to specify which dimension in numpy array contains Channels.
+        diameter (int):
+            Approximate cell diameter in pixels. If None, default value in model.eval() is 30
+        do_3D (boolean):
+            True if you want the model to run on 3D data.
+        anisotropy (int):
+            Ratio between the x, y an z channel. Only needed for 3D.
+        cellprob_threshold (float):(float (optional, default 3.0)) – all pixels with value above
+          threshold kept for masks, decrease to find more and larger masks.
 
     RETURNS:
         mask: the function returns a mask containing instance segmentations of the image. It is a 2d array (w, h).
 
-    '''
+    """
     # create model
     cellpose_model = models.Cellpose(gpu=gpu, model_type=model)
 
     # create masks from image
-    masks, flows, styles, diams = cellpose_model.eval(image, diameter=diameter, channels=channel, channel_axis=channel_axis)
+    masks, flows, styles, diams = cellpose_model.eval(
+        image,
+        diameter=diameter,
+        channels=channel,
+        channel_axis=channel_axis,
+        do_3D=do_3D,
+        anisotropy=anisotropy,
+        cellprob_threshold=cellprob_threshold,
+        net_avg=True,
+        resample=True,
+        min_size=128,
+    )
+    
+    import matplotlib.pyplot as plt
+
+    breakpoint()
+    
+
+    for i in range(4):
+        for j in range(3):
+            plt.imsave(f"out_{i}_{j}.png", flows[0][i][:, :, j])
 
     return masks
 
 
-## function to create array from tiff, and from zarr (load_data.py) two functions
 
-## function for running for loop on yeast (process_yeast_cellpose.py)
-    # calls load to tiff
-    # calls run_cellpose
-
-
-## function for running for loop on tiffs
-
-## function for running for loop on 3d data set
