@@ -7,11 +7,12 @@ from run_cellpose import run_cellpose
 from matplotlib import pyplot as plt
 from pathlib import Path
 from imageio import imread
-from load_data_cellpose import load_data_yeast
+from yeastibois.load_masks_cellpose import load_data_yeast
 import tifffile
 import logging
 from skimage.color import label2rgb
 from tqdm import tqdm
+import zarr
 
 
 def proc_cellpose_zarr(
@@ -24,7 +25,7 @@ def proc_cellpose_zarr(
     do_3D=False,
     anisotropy=None,
 ):
-    """Summary: fill mask directory in zarr, with masks of raw images created with cellpose.
+    """Summary: creates masks with cellpose and fills mask directory in zarr.
 
     Args:
         zarr_file (str) = zarr containing masks and images datasets.
@@ -52,21 +53,23 @@ def proc_cellpose_zarr(
     """
 
     with zarr.open(zarr_file, "r+") as zarr_root:
-        input_data = zarr_root[raw]  # 4d array
+        print(zarr_root.shape)
+        # input_data = zarr_root[raw]  # 4d array
 
-        zarr_root.create_dataset(output_group_name, shape=input_data.shape)
+        # zarr_root.create_dataset(output_group_name, shape=input_data.shape)
+        # print(inpu)
 
-        for frame in range(input_data.shape[0]):  ## loop through images in .zarr
-            for z in range(input_data.shape[1]):  ## loop through z-stacks in image
-                frame_mask = run_cellpose(
-                    input_data[frame, z],
-                    model=model,
-                )
-                zarr_root["mask"][frame, z] = frame_mask
+        # for frame in range(input_data.shape[0]):  ## loop through images in .zarr
+        #     for z in range(input_data.shape[1]):  ## loop through z-stacks in image
+        #         frame_mask = run_cellpose(
+        #             input_data[frame, z],
+        #             model=model,
+        #         )
+        #         zarr_root["mask"][frame, z] = frame_mask
 
 
-path = "/mnt/efs/shared_data/YeastiBois/zarr_files/Tien/4dmz_2min_40x_01007.zarr"
-
+zfile = "/mnt/efs/shared_data/YeastiBois/zarr_files/Tien/4dmz_2min_40x_01007.zarr"
+proc_cellpose_zarr(zfile)
 
 
 def proc_cellpose_tif(
@@ -79,7 +82,7 @@ def proc_cellpose_tif(
     do_3D=False,
     anisotropy=None,
 ):
-    """Summary: create masks from tiff files
+    """Summary: create masks from tiff files with cellpose.
 
     Args:
         directory (str) = path to file
