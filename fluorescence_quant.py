@@ -13,22 +13,44 @@ from skimage.color import label2rgb
 from tqdm import tqdm
 import zarr
 import typer
+import json
+
 
 def fluor_quant(mask, raw_fluor):
-    
-    '''
+    """
     Summary: This function returns single-cell fluoresence intensities across time from tracked cells.
 
     Args:
-        Mask (np.array): A folder of masks
-        Raw_fluor (np.array): A folder of images, from which we will pull the fluorescence channel. 
+        Mask (str): path to a zarr array, segmentation, ids of cells consistent over time = after tracking.
+        Raw_fluor (str): path to a zarr array, fluo channel.
 
-    '''
+    """
 
-    tracked_data = mask #your tracked data, shape=(t,z,y,x)
+    tracked_data = mask  # your tracked data, shape=(t,z,y,x)
     flourescence = raw
 
-    for i in tracked_data.shape[0]: #iterate through all timepoints
-        regions = skimage.measure.regionprops(tracked_data[i],intensity_image=a)
-            for r in regions:
-                intensity = r.intensity_mean
+    out = {}
+    for i in tracked_data.shape[0]:  # iterate through all timepoints
+        out_t = {}
+        regions = skimage.measure.regionprops(
+            tracked_data[i], intensity_image=flourescence[i]
+        )
+        for r in regions:
+            intensity = r.intensity_mean
+            out_t[r.label] = intensity
+        out[i] = out_t
+
+    with open("fluo_intensities.json", "w") as f:
+        json.dump(out, f)
+
+
+if __name__ == "__main__":
+    f = Path("example.zarr")
+    mask = zarr.ooen(f / "tracked_segmentations", "r")
+    fluo = zarr.open(f / "fluorescence", "r")
+    # select some channel
+    print(fluo.shape)
+    # all timepoints
+    fluo = fluo[:, 1]
+
+    fluor_quant(mask, fluo)
