@@ -57,7 +57,7 @@ def proc_cellpose_zarr(
         masks (np.array) = a segmented mask object for the file
     """
     ## open zarr
-    new_filename = path.split(".")[0] + "_RawMask.zarr"
+    new_filename = path.split(".")[0] + "_RawMask2.zarr"
 
     zarr_path = path
 
@@ -190,7 +190,7 @@ def main(
     gpu: bool = True,
     channel_seg: int = 0,  ## when calling in command line, need to use --channel-seg with no underscore.
     channel_nuc: int = 0,
-    model: str = "nuclei",
+    model: str = "cyto2",
     channel_axis: int = 0,
     diameter: int = 15.0,
     do_3D: bool = True,
